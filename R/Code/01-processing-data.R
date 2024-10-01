@@ -2,45 +2,62 @@
 # 01. Data processing
 
 ### Libraries
-# library(haven)
-# library(dplyr)
-# library(tidyr)
-# library(stringr)
-# library(labelled)
+library(haven)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(labelled)
 
 ### Loading data ----
 
 # Load the dataset
-data_path <- "ADD-YOUR-PATH"
-data      <- read_dta(file.path(data_path, "Raw/TZA_CCT_baseline.dta"))
+data_path <- "C:\Users\wb631166\OneDrive - WBG\Desktop\Reproducible Research Fundamentals 2024\RRF - public\Course Materials\DataWork\Data\Raw"
+data      <- read_dta(file.path(data_path, "/TZA_CCT_baseline.dta"))
+
+##View data- What is the unit of observation in the dataset? household
+##Does the data have a unique ID? yes
+#Do all the variables in the dataset have the same unit of observation?
+#Is there more than one unit of observation in this dataset?
+
+
+View(data)
+head(data)
+n_distinct(data)
+nrow(data)
+glimpse(data)
+
+
+#Exercise 2- Duplicates 
 
 ### Remove duplicates based on hhid
-data_dedup <- data %>%
+data_clean <- data %>% distinct(hhid, .keep_all=TRUE) #1758 obs 2 obs duplicates
     ......
 
 ### Household (HH) level data ----
 
-#### Tidying data for HH level
-data_tidy_hh <- data_dedup %>%
-    ......
+#### Tidying data for HH level- we will create 3 data
+
+data_tidy_hh <- data_clean %>% select(vid, hhid, enid, floor:n_elder, food_cons:submissionday)
 
 ### Data cleaning for Household-member (HH-member) level
 data_clean_hh <- data_tidy_hh %>%
     # Convert submissionday to date
-    mutate(...... = as.Date(......, format = "%Y-%m-%d %H:%M:%S")) %>%
+    mutate(submissionday = as.Date(submissionday, format = "%Y-%m-%d %H:%M:%S")) %>%
     # Convert duration to numeric (if it is not already)
-    mutate(......) %>%
+    mutate(duration=as.numeric(duration)) %>%
     # Convert ar_farm_unit to factor (categorical data)
-    mutate(......) %>%
+    mutate(ar_farm_unit=as.factor(ar_farm_unit)) %>%
     # Replace values in the crop variable based on crop_other using regex for new crops
     mutate(crop = case_when(
-        ......
+        str_detect(crop_other, "Coconut")~ 40, 
+        str_detect(crop_other, "sesame")~ 41,
+        TRUE ~ crop
     )) %>%
     # Recode negative numeric values (-88) as missing (NA)
-    mutate(across(......)) %>%
+    mutate(across(where(is.numeric),~replace(., .x==-88,NA))) %>%
     # Add variable labels
     set_variable_labels(
-        ......
+        duration="Duration"
     )
 
 # Save the household data
@@ -49,17 +66,16 @@ write_dta(data_clean_hh, file.path(data_path, "Intermediate/TZA_CCT_HH.dta"))
 ### Household member (HH-member) level data ----
 
 #### Tidying data for HH-member level
-data_tidy_mem <- data_dedup %>%
-    select(......,
-           starts_with(......)) %>%
+data_tidy_mem <- data_clean %>%
+    select(vid,hhid,enid,gender_1:days_impact_2) %>%
     pivot_longer(cols = -c(vid, hhid, enid),  # Keep IDs static
-                 names_to = ......,
+                 names_to = c(".value", "member"),
                  names_pattern = "(.*)_(\\d+)")  # Capture the variable and the suffix
 
 ### Data cleaning for HH-member level
 data_clean_mem <- data_tidy_mem %>%
     # Drop rows where gender is missing (NA)
-    ...... %>%
+    filter(!is.na(gender)) %>%
     # Variable labels
     ......
 
