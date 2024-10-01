@@ -52,13 +52,13 @@ usd <- 0.00037
 
 #Area in acres (converts units for farming units)
 
-hh_data <- hh_data %>% 
+hh_data <- hh_data %>%
     mutate(area_acre = case_when(
-        ar_unit == 1 ~ ar_farm, 
-        ar_unit == 2 ~ ar_farm * acre_conv 
+        ar_unit == 1 ~ ar_farm,               # If unit is acres
+        ar_unit == 2 ~ ar_farm * acre_conv     # Convert hectare to acres
     )) %>%
-    mutate (area_acre = replace_na (area_acre, 0)) %>%
-    set_value_labels(area_acre = "Area farmed in acres")
+    mutate(area_acre = replace_na(area_acre, 0)) %>% 
+    set_variable_labels(area_acre = "Area farmed in acres")
 
 #Consumption in USD 
 
@@ -113,12 +113,12 @@ for (var in win_vars){
 
 #Update the labels to reflect that winsorization was applied
 
-hh_data <- hh_data  %>%
-    mutate(across(ends_with("_w"),
-                  ~ labelled(.x, label=paste0(attr(.x, label),
-                                              "(Winsorized 0.05)"))))
+hh_data <- hh_data %>%
+    mutate(across(ends_with("_w"), 
+                  ~ labelled(.x, label = paste0(attr(.x, "label"), 
+                                                " (Winsorized 0.05)"))))
 
- 
+
  
 # Exercise 4.1: Create indicators at household level ----
 # Instructions:
@@ -129,32 +129,38 @@ hh_data <- hh_data  %>%
 # 3. Average sick days.
 # 4. Total treatment cost in USD.
 
-hh_men_collapsed<- mem_data %>%
+hh_mem_collapsed <- mem_data %>%
     group_by(hhid) %>%
-    sumarise(
-        sick = max (sick, na.rm = TRUE),
-        read = max (read, na.rm = TRUE),
-        days_sick = if_else(all(is.na(days_sick)), NA_real_, mean(days_sick, na.rm = TRUE)), 
-        treat_cost_usd = if_else(all(is.na(treat_cost)), NA_real_, sum(treat_cost_usd, na.rm = TRUE) * usd)
+    summarise(
+        sick = max(sick, na.rm = TRUE),  # Any member was sick
+        read = max(read, na.rm = TRUE),  # Any member can read/write
+        # If all values of days_sick are NA, return NA; otherwise, calculate mean
+        days_sick = if_else(all(is.na(days_sick)), NA_real_, mean(days_sick, na.rm = TRUE)),
+        # If all values of treat_cost are NA, return NA; otherwise, calculate sum in USD
+        treat_cost_usd = if_else(all(is.na(treat_cost)), NA_real_, sum(treat_cost, na.rm = TRUE) * usd)
     ) %>%
-    ungroup() %<%
-    mutate(treat_cost_usd = if_else(is.na(treat_cost_usd), mean(treat_cost_usd, na.rm = TRUE), treat_cost_usd))
-set_variable_labels(
-    read = "Any member can read/write", 
-    sick= "Any member was sick in the las 4 weeks", 
-    days_sick = "Average sick days", 
-    treat_cost_usd = "Total cost of treatment (USD)"
-           
+    ungroup() %>%
+    # Replace missing treat_cost_usd with the average of non-missing values
+    mutate(treat_cost_usd = if_else(is.na(treat_cost_usd), 
+                                    mean(treat_cost_usd, na.rm = TRUE), 
+                                    treat_cost_usd)) %>%
+    # Apply labels to the variables
+    set_variable_labels(
+        read = "Any member can read/write",
+        sick = "Any member was sick in the last 4 weeks",
+        days_sick = "Average sick days",
+        treat_cost_usd = "Total cost of treatment (USD)"
     )
-
 
 
 # Exercise 4.2: Data construction: Secondary data ----
 # Instructions:
 # Calculate the total number of medical facilities by summing relevant columns.
 
-secondary_data<- seondary_data %>% 
-    mutate(n_medical = rowSums(select(., n_clinic, n_hospital), na.rm = TRUE)) 
+secondary_data <- secondary_data %>%
+    mutate(n_medical = rowSums(select(., n_clinic, n_hospital), 
+                               na.rm = TRUE)) 
+
 
 
 # Apply appropriate labels to the new variables created.
@@ -168,13 +174,14 @@ secondary_data<- seondary_data %>%
  
 #Merge HH and HH-member datasets 
  
- final_hh_data<- hh_data %>% left_join(hh_men_collapsed, by = "hhid")
+final_hh_data <- hh_data %>%
+     left_join(hh_mem_collapsed, by = "hhid")
  
 #Load treatment status and merge
  
- treat_status <- read_dta(file.path(data_path, "Raw/treat_status.dta"))
+treat_status <- read_dta(file.path(data_path, "Raw/treat_status.dta"))
  
- final_hh_data <- final_hh_data %>% 
+final_hh_data <- final_hh_data %>% 
      left_join(treat_status, by = "vid")
      
  
