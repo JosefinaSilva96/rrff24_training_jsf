@@ -32,7 +32,6 @@ data_path <- "C:/WBG/GitHub/rrff24_training_jsf/R/Data"
 
 
 
-
 # Run the R scripts ----
 
 source("Code/01-processing-data.R")
