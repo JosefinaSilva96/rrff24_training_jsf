@@ -14,7 +14,7 @@ library(tidyr)
 # Load the dataset
 
 hh_data   <- read_dta(file.path(data_path, "Final/TZA_CCT_analysis.dta"))
-glimpse(hh_data)
+
 
 # secondary data 
 secondary_data <- read_dta(file.path(data_path, "Final/TZA_amenity_analysis.dta")) %>%
