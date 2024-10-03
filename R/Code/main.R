@@ -16,13 +16,32 @@ library(modelsummary) # creating summary tables
 library(stargazer) # writing nice tables
 library(RColorBrewer) # color palettes
 
+#Recover environment----
+
+#new users need to restore the environment by doing:
+#you only need to do this the first time you interact with the package:
+
+#renv::restore()
+
 # Set data path ----
 
 # this is the second root of the project, the first root is the code whose directory 
 # is already being handled by the rstudio project.
 
-data_path <- "the path for your data"
+data_path <- "C:/WBG/GitHub/rrff24_training_jsf/R/Data"
+
+
+
 
 # Run the R scripts ----
 
-source("the path of your scripts")
+source("Code/01-processing-data.R")
+
+source("Code/02-constructing-data.R")
+
+source("Code/03-analyzing-data.R")
+
+
+
+
+

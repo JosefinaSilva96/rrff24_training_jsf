@@ -13,7 +13,6 @@ library(tidyr)
 #household level data
 # Load the dataset
 
-data_path <- "C:/Users/wb631166/OneDrive - WBG/Desktop/Reproducible Research Fundamentals 2024/RRF - public/Course Materials/DataWork/Data"
 hh_data   <- read_dta(file.path(data_path, "Final/TZA_CCT_analysis.dta"))
 glimpse(hh_data)
 
