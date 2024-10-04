@@ -4,18 +4,22 @@
 *------------------------------------------------------------------------------- 	
 	
 	* Load TZA_CCT_baseline.dta
-	use "${data}/???", clear
+	
+	use "${data}/Raw/TZA_CCT_baseline.dta", clear
+	
+	use "C:/Users/wb631166/OneDrive - WBG/Desktop/Reproducible Research Fundamentals 2024/RRF - public/Course Materials/DataWork/Data/Raw/TZA_CCT_baseline.dta", clear
 	
 *-------------------------------------------------------------------------------	
 * Checking for unique ID and fixing duplicates
 *------------------------------------------------------------------------------- 		
 
 	* Identify duplicates 
-	ieduplicates	??? ///
+	ieduplicates	hhid ///
 					using "${outputs}/duplicates.xlsx", ///
-					uniquevars(???) ///
-					keepvars(???) ///
+					uniquevars(key) ///
+					keepvars(vid enid submissionday) ///
 					nodaily
+					
 					
 	
 *-------------------------------------------------------------------------------	
